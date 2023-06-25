@@ -1,21 +1,21 @@
-ttv aka twitch tv
+# ttv aka twitch tv
 
 This is a golang command-line tool for playing Twitch streams using the `mpv` media player.
 
-Prerequisites
+## Prerequisites
 
 - `mpv` media player
 - `youtube-dl`
 
-Installation
+## Installation
 
 1. Go to the [Releases](https://github.com/ealvar3z/ttv/releases) page of this repository.
 2. Download the appropriate release package for your operating system (Windows, Linux, macOS, BSD).
 3. Extract the contents of the package to a directory of your choice.
 
-Usage
+## Usage
 
-Windows
+### Windows
 
 - Open the `Command Prompt (cmd)` or `PowerShell terminal`.
 - Navigate to the directory where you extracted the release package.
@@ -24,3 +24,5 @@ Windows
 ```shell
 tv.exe <twitch-username>
 ```
+
+---
