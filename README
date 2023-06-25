@@ -21,7 +21,7 @@ This is a golang command-line tool for playing Twitch streams using the `mpv` me
 - Navigate to the directory where you extracted the release package.
 - Run the following command:
 
-  ```shell
-  tv.exe <twitch-username>
-  ```
+```shell
+tv.exe <twitch-username>
+```
 
