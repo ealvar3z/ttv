@@ -24,4 +24,5 @@ This is a golang command-line tool for playing Twitch streams using the `mpv` me
 ```shell
 tv.exe <twitch-username>
 ```
+---
 
