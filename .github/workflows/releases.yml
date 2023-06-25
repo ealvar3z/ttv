@@ -1,0 +1,59 @@
+name: Releases
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: Build for all platforms
+        run: |
+          env GOOS=windows GOARCH=amd64 go build -o tv.exe main.go
+          env GOOS=linux GOARCH=amd64 go build -o tv main.go
+          env GOOS=darwin GOARCH=amd64 go build -o tv main.go
+          env GOOS=freebsd GOARCH=amd64 go build -o tv main.go
+
+      - name: Archive artifacts
+        run: |
+          mkdir artifacts
+          mv tv.exe artifacts/
+          mv tv artifacts/
+          mv tv artifacts/
+          mv tv artifacts/
+          tar -czvf artifacts.tar.gz artifacts/
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload artifacts
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts.tar.gz
+          asset_name: artifacts.tar.gz
+          asset_content_type: application/gzip
+

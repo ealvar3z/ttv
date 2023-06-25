@@ -1,0 +1,31 @@
+name: CI Pipeline 
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest, freebsd-latest]
+        goos: [windows, linux, darwin, freebsd]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+          
+      - name: Build and test
+        run: |
+          env GOOS=${{ matrix.goos }} go build -o tv-${{ matrix.goos }} main.go
+          go test ./...
+
