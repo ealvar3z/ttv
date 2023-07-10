@@ -34,14 +34,17 @@ jobs:
           zip -r ttv-darwin-amd64.zip ttv-darwin-amd64
 
       - name: Create a release
-        id: create_release
-        uses: actions/create-release@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ github.sha }}
-          release_name: Release ${{ github.sha }}
-          draft: false
-          prerelease: false
+        uses: marvinpinto/action-automatic-releases@latest
+          with:
+            repo_token: ${{ secrets.GITHUB_TOKEN }}
+            files: |
+              ./ttv-windows-amd64.zip
+              ./ttv-linux-amd64.zip
+              ./ttv-darwin-amd64.zip
+            release_name: Release ${{ github.sha }}
+            tag_name: ${{ github.sha }}
+            prerelease: false
+            draft: false
 
       - name: Upload Windows artifact
         uses: actions/upload-release-asset@v1
