@@ -4,77 +4,64 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v*.*.*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.19
-
-      - name: Build and test
+          go-version: 1.20
+      
+      - name: Build and package
         run: |
-          env GOOS=windows GOARCH=amd64 go build -o ttv-windows.exe main.go
-          env GOOS=linux GOARCH=amd64 go build -o ttv-linux main.go
-          env GOOS=darwin GOARCH=amd64 go build -o ttv-darwin main.go
-          go test ./...
+          # Build for Windows
+          GOOS=windows GOARCH=amd64 go build -o ttv-windows-amd64.exe
+          zip -r ttv-windows-amd64.zip ttv-windows-amd64.exe
 
-      - name: Archive artifacts
-        run: |
-          mkdir artifacts
-          mv ttv-windows.exe artifacts/
-          mv ttv-linux artifacts/
-          mv ttv-darwin artifacts/
-          tar -czvf artifacts.tar.gz artifacts/
+          # Build for Linux
+          GOOS=linux GOARCH=amd64 go build -o ttv-linux-amd64
+          zip -r ttv-linux-amd64.zip ttv-linux-amd64
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: artifacts
-          path: artifacts.tar.gz
+          # Build for macOS
+          GOOS=darwin GOARCH=amd64 go build -o ttv-darwin-amd64
+          zip -r ttv-darwin-amd64.zip ttv-darwin-amd64
+          
+          # Upload the artifacts to GitHub releases
+          # Create a release
+          - uses: actions/create-release@v1
+            with:
+              tag_name: ${{ github.sha }}
+              release_name: Release ${{ github.sha }}
+              draft: false
+              prerelease: false
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+          # Upload Windows artifact
+          - uses: actions/upload-release-asset@v1
+            with:
+              upload_url: ${{ steps.create_release.outputs.upload_url }}
+              asset_path: ./ttv-windows-amd64.zip
+              asset_name: ttv-windows-amd64.zip
+              asset_content_type: application/zip
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+          # Upload Linux artifact
+          - uses: actions/upload-release-asset@v1
+            with:
+              upload_url: ${{ steps.create_release.outputs.upload_url }}
+              asset_path: ./ttv-linux-amd64.zip
+              asset_name: ttv-linux-amd64.zip
+              asset_content_type: application/zip
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: artifacts
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: |
-            Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Upload artifacts
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/artifacts.tar.gz
-          asset_name: artifacts.tar.gz
-          asset_content_type: application/gzip
+          # Upload macOS artifact
+          - uses: actions/upload-release-asset@v1
+            with:
+              upload_url: ${{ steps.create_release.outputs.upload_url }}
+              asset_path: ./ttv-darwin-amd64.zip
+              asset_name: ttv-darwin-amd64.zip
+              asset_content_type: application/zip
 
