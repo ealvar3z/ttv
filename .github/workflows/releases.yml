@@ -23,7 +23,6 @@ jobs:
           env GOOS=windows GOARCH=amd64 go build -o ttv.exe main.go
           env GOOS=linux GOARCH=amd64 go build -o ttv main.go
           env GOOS=darwin GOARCH=amd64 go build -o ttv main.go
-          env GOOS=freebsd GOARCH=amd64 go build -o ttv main.go
 
       - name: Archive artifacts
         run: |

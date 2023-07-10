@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest, freebsd-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest] 
         goos: [windows, linux, darwin, freebsd]
 
     runs-on: ${{ matrix.os }}
