@@ -20,6 +20,10 @@ jobs:
 
       - name: Archive artifacts
         run: |
+          mkdir artifacts
+          mv ttv-windows.exe artifacts/
+          mv ttv-linux artifacts/
+          mv ttv-darwin artifacts/
           tar -czvf artifacts.tar.gz artifacts/
 
       - name: Create Release
