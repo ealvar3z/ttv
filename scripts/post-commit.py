@@ -21,7 +21,7 @@ def main():
     tag = latest_commit_sha
 
     subprocess.call(['git', 'tag', tag])
-    subprocess.call(['git', 'push', 'origin', 'master', '--tags'])
+    subprocess.call(['git', 'push', 'origin', 'main', '--tags'])
 
     sys.exit()
 
