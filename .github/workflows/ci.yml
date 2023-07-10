@@ -26,6 +26,6 @@ jobs:
           
       - name: Build and test
         run: |
-          env GOOS=${{ matrix.goos }} go build -o tv-${{ matrix.goos }} main.go
+          env GOOS=${{ matrix.goos }} go build -o ttv-${{ matrix.goos }} main.go
           go test ./...
 

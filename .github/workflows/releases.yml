@@ -20,18 +20,18 @@ jobs:
 
       - name: Build for all platforms
         run: |
-          env GOOS=windows GOARCH=amd64 go build -o tv.exe main.go
-          env GOOS=linux GOARCH=amd64 go build -o tv main.go
-          env GOOS=darwin GOARCH=amd64 go build -o tv main.go
-          env GOOS=freebsd GOARCH=amd64 go build -o tv main.go
+          env GOOS=windows GOARCH=amd64 go build -o ttv.exe main.go
+          env GOOS=linux GOARCH=amd64 go build -o ttv main.go
+          env GOOS=darwin GOARCH=amd64 go build -o ttv main.go
+          env GOOS=freebsd GOARCH=amd64 go build -o ttv main.go
 
       - name: Archive artifacts
         run: |
           mkdir artifacts
-          mv tv.exe artifacts/
-          mv tv artifacts/
-          mv tv artifacts/
-          mv tv artifacts/
+          mv ttv.exe artifacts/
+          mv ttv artifacts/
+          mv ttv artifacts/
+          mv ttv artifacts/
           tar -czvf artifacts.tar.gz artifacts/
 
       - name: Create Release
