@@ -18,7 +18,10 @@ def main():
     response = requests.get(api_url, headers=headers)
     response_json = response.json()
     latest_commit_sha = response_json['sha']
-    tag = latest_commit_sha
+
+    # let's truncate the SHA to 8 chars to meet the tag character limit
+    tag = latest_commit_sha[:8]
+
 
     subprocess.call(['git', 'tag', tag])
     subprocess.call(['git', 'push', 'origin', 'main', '--tags'])
