@@ -13,23 +13,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Go
-        uses: actions/setup-go@v2
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
         with:
-          go-version: 1.19
-
-      - name: Build for all platforms
-        run: |
-          env GOOS=windows GOARCH=amd64 go build -o ttv-windows.exe main.go
-          env GOOS=linux GOARCH=amd64 go build -o ttv-linux main.go
-          env GOOS=darwin GOARCH=amd64 go build -o ttv-darwin main.go
+          path: artifacts
 
       - name: Archive artifacts
         run: |
-          mkdir artifacts
-          mv ttv-windows.exe artifacts/
-          mv ttv-linux artifacts/
-          mv ttv-darwin artifacts/
           tar -czvf artifacts.tar.gz artifacts/
 
       - name: Create Release

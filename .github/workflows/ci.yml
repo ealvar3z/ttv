@@ -29,3 +29,9 @@ jobs:
           env GOOS=${{ matrix.goos }} go build -o ttv-${{ matrix.goos }} main.go
           go test ./...
 
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ttv-${{ matrix.goos }}
+          path: ./ttv-${{ matrix.goos }}
+
