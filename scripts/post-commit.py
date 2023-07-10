@@ -22,7 +22,6 @@ def main():
 
     subprocess.call(['git', 'tag', tag])
     subprocess.call(['git', 'push', 'origin', 'master', '--tags'])
-    print(tag)
 
     sys.exit()
 
