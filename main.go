@@ -19,7 +19,12 @@ func formats(name string) []string {
 	cmd := exec.Command("youtube-dl", "-F", "https://twitch.tv/"+name)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatalf("Error occurred: %s", err)
+		offline := fmt.Sprintf("%s is offline", name)
+		if strings.Contains(string(output), offline) {
+			fmt.Printf("Stream '%s' is offline.\n", name)
+			return []string{}
+		}
+		log.Fatalf("Error occurred: %v", err)
 	}
 
 	formatCodes := []string{}
@@ -45,7 +50,7 @@ func pickOne(lst []string) string {
 		fmt.Print("? ")
 		_, err := fmt.Scanln(&answer)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("[ERROR] %v: ", err)
 		}
 
 		if index, err := strconv.Atoi(answer); err == nil && index >= 1 && index <= len(lst) {
@@ -77,13 +82,13 @@ func playStream(fmt, name string) {
 	// run asynchronously
 	err := cmd.Start()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("[ERROR] %v: ", err)
 	}
 
 	// choto-mate ne! ... give me back my terminal
 	err = cmd.Process.Release()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("[ERROR] %v: ", err)
 	}
 }
 
