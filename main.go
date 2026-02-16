@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -15,29 +16,71 @@ func usage() {
 	os.Exit(1)
 }
 
-func formats(name string) []string {
-	cmd := exec.Command("youtube-dl", "-F", "https://twitch.tv/"+name)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		offline := fmt.Sprintf("%s is offline", name)
-		if strings.Contains(string(output), offline) {
-			fmt.Printf("Stream '%s' is offline.\n", name)
-			return []string{}
-		}
-		log.Fatalf("Error occurred: %v", err)
+func isOfflineMessage(output string) bool {
+	lower := strings.ToLower(output)
+	offlineHints := []string{
+		"is offline",
+		"not currently live",
+		"channel is not live",
+		"channel is offline",
 	}
 
-	formatCodes := []string{}
-	lines := strings.Split(string(output), "\n")
-	regex := regexp.MustCompile(`^\d+p(\S+)?`)
+	for _, hint := range offlineHints {
+		if strings.Contains(lower, hint) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func parseFormatCodes(output string) []string {
+	formatSet := map[string]struct{}{}
+	lines := strings.Split(output, "\n")
+	regex := regexp.MustCompile(`^[0-9]{3,4}p(?:[0-9]{2})?$`)
 
 	for _, line := range lines {
-		if matches := regex.FindStringSubmatch(line); matches != nil {
-			formatCodes = append(formatCodes, matches[0])
+		fields := strings.Fields(line)
+		if len(fields) == 0 {
+			continue
+		}
+
+		code := fields[0]
+		if regex.MatchString(code) {
+			formatSet[code] = struct{}{}
 		}
 	}
 
+	formatCodes := make([]string, 0, len(formatSet))
+	for code := range formatSet {
+		formatCodes = append(formatCodes, code)
+	}
+	sort.Strings(formatCodes)
 	return formatCodes
+}
+
+func formats(name string) ([]string, error) {
+	cmd := exec.Command("yt-dlp", "-F", "https://twitch.tv/"+name)
+	output, err := cmd.CombinedOutput()
+	outputText := strings.TrimSpace(string(output))
+
+	if err != nil {
+		if isOfflineMessage(outputText) {
+			return nil, fmt.Errorf("stream '%s' is offline", name)
+		}
+
+		if outputText != "" {
+			return nil, fmt.Errorf("yt-dlp failed: %w\n%s", err, outputText)
+		}
+		return nil, fmt.Errorf("yt-dlp failed: %w", err)
+	}
+
+	formatCodes := parseFormatCodes(outputText)
+	if len(formatCodes) == 0 {
+		return nil, fmt.Errorf("yt-dlp returned no compatible quality formats for '%s'", name)
+	}
+
+	return formatCodes, nil
 }
 
 func pickOne(lst []string) string {
@@ -62,9 +105,9 @@ func pickOne(lst []string) string {
 }
 
 func getFmt(name string) string {
-	fmts := formats(name)
-	if len(fmts) == 0 {
-		log.Fatal("No available format found for the stream.")
+	fmts, err := formats(name)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	fmt.Println("Pick a format:")

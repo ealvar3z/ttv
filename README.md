@@ -3,8 +3,8 @@ twitch tv terminal client in Go
 
 ## Prerequisites
 
-- `mpv` media player
-- `youtube-dl`
+- `mpv`
+- `yt-dlp`
 
 ## Installation
 
