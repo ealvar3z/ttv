@@ -2,71 +2,73 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.19
+          go-version-file: go.mod
+          cache: true
 
-      - name: Build for Windows
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test ./...
+
+  build:
+    name: Build (${{ matrix.goos }}/${{ matrix.goarch }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            ext: ""
+          - goos: windows
+            goarch: amd64
+            ext: ".exe"
+          - goos: darwin
+            goarch: amd64
+            ext: ""
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
         run: |
-          GOOS=windows GOARCH=amd64 go build -o ttv-windows-amd64.exe
-          zip -r ttv-windows-amd64.zip ttv-windows-amd64.exe
+          mkdir -p dist
+          OUT="dist/ttv-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}"
+          go build -trimpath -o "$OUT" .
 
-      - name: Build for Linux
-        run: |
-          GOOS=linux GOARCH=amd64 go build -o ttv-linux-amd64
-          zip -r ttv-linux-amd64.zip ttv-linux-amd64
-
-      - name: Build for macOS
-        run: |
-          GOOS=darwin GOARCH=amd64 go build -o ttv-darwin-amd64
-          zip -r ttv-darwin-amd64.zip ttv-darwin-amd64
-
-      - name: Create a release
-        uses: marvinpinto/action-automatic-releases@latest
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          files: |
-            ./ttv-windows-amd64.zip
-            ./ttv-linux-amd64.zip
-            ./ttv-darwin-amd64.zip
-          release_name: Release ${{ github.sha }}
-          tag_name: ${{ github.sha }}
-          prerelease: false
-          draft: false
-
-      - name: Upload Windows artifact
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./ttv-windows-amd64.zip
-          asset_name: ttv-windows-amd64.zip
-          asset_content_type: application/zip
-
-      - name: Upload Linux artifact
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./ttv-linux-amd64.zip
-          asset_name: ttv-linux-amd64.zip
-          asset_content_type: application/zip
-
-      - name: Upload macOS artifact
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./ttv-darwin-amd64.zip
-          asset_name: ttv-darwin-amd64.zip
-          asset_content_type: application/zip
-
+          name: ttv-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
+          if-no-files-found: error
