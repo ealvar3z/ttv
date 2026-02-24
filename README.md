@@ -14,14 +14,8 @@ twitch tv terminal client in Go
 
 ## Usage
 
-### Windows
-
-- Open the `Command Prompt (cmd)` or `PowerShell terminal`.
-- Navigate to the directory where you extracted the release package.
-- Run the following command:
-
 ```shell
-tv.exe <twitch-username>
+ttv <twitch-username>
 ```
 
 ---
